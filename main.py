@@ -1,6 +1,6 @@
 # main.py
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse , Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import zipfile
@@ -174,6 +174,10 @@ def generate_markdown(directory: Path, filters: FilterRequest) -> str:
     process_directory(directory)
     return "\n".join(markdown)
 
+@app.get("/")
+async def serve_index():
+    return FileResponse("static/index.html")
+
 @app.post("/upload/")
 async def upload_zip(file: UploadFile = File(...)):
     """Handle zip file upload and return UUID and folder structure."""
@@ -220,22 +224,15 @@ async def create_markdown(filters: FilterRequest):
         markdown_content = generate_markdown(extract_path, filters)
         
         # Check file size (in bytes, 65KB = 65 * 1024)
-        content_size = len(markdown_content.encode("utf-8"))
+        # content_size = len(markdown_content.encode("utf-8"))
         output_file = extract_path / "output.md"
         
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(markdown_content)
         
-        response = {
-            "uuid": filters.uuid,
-            "filename": "output.md",
-            "can_preview": content_size <= 65 * 1024
-        }
         
-        if response["can_preview"]:
-            response["content"] = markdown_content
         
-        return JSONResponse(content=response)
+        return Response(content=markdown_content)
     
     except Exception as e:
         logger.error(f"Error generating markdown: {e}")

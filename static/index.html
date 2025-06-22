@@ -1,81 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-  <title>SpectraCtrl - Clean White UI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/css/styles.css" />
-</head>
-<body class="opacity-0">
-  <div class="flex h-screen max-w-full select-none">
-    <!-- Sidebar -->
-    <nav class="w-56 bg-[var(--bg-semi)] flex flex-col py-8 px-6 border-r border-[var(--border)] h-screen justify-between" role="navigation" aria-label="Main sidebar">
-      <div>
-        <h1 class="text-3xl font-extrabold mb-12 tracking-tight text-[var(--text-primary)] select-text">SpectraCtrl</h1>
-        <ul class="flex flex-col gap-4 text-sm font-semibold text-[var(--text-muted)]" id="sidebar-tabs">
-          <li><a href="#share" data-tab="share" class="active block px-4 py-3 rounded-lg transition focus:outline-none" tabindex="0" role="tab" aria-selected="true" aria-controls="share-panel" id="tab-share">Share</a></li>
-          <li><a href="#player" data-tab="player" class="block px-4 py-3 rounded-lg transition focus:outline-none" tabindex="0" role="tab" aria-selected="false" aria-controls="player-panel" id="tab-player">Player</a></li>
-          <li><a href="#connections" data-tab="connections" class="block px-4 py-3 rounded-lg transition focus:outline-none" tabindex="-1" role="tab" aria-selected="false" aria-controls="connections-panel" id="tab-connections">Connections</a></li>
-          <li><a href="#about" data-tab="about" class="block px-4 py-3 rounded-lg transition focus:outline-none" tabindex="-1" role="tab" aria-selected="false" aria-controls="about-panel" id="tab-about">About</a></li>
-        </ul>
-      </div>
-      <div>
-        <div class="flex items-center gap-3 text-sm px-3 py-4 border-t border-[var(--border)]">
-          <button id="themeToggle" class="flex items-center gap-2 px-3 py-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] transition focus:outline-none" aria-label="Toggle theme">
-            <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path id="iconPath" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <span id="themeLabel">Light</span>
-          </button>
-        </div>
-        <div class="pt-6 text-xs text-[var(--text-muted)] font-medium px-3">v1.0.0 &mdash; &copy; 2025</div>
-      </div>
-    </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Source Fold</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      #markdownPreview p code{
+        color:red;
+        background: rgba(0, 0, 0, 0.03);
+        font-family: monospace;
+        border-radius: 4px;
+        padding: 0px 4px;
+      }
 
-    <!-- Main content -->
-    <main class="flex-1 p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent">
-      <section class="max-w-6xl mx-auto space-y-6">
-        <div id="share-panel" role="tabpanel" tabindex="0" aria-labelledby="tab-share">
-          <h2 class="text-2xl font-bold text-var(--text-primary) tracking-tight mb-2">Monitors</h2>
-          <div id="monitors" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
-          <h2 class="text-2xl font-bold text-var(--text-primary) tracking-tight mt-12 mb-2">Windows</h2>
-          <div id="windows" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
-        </div>
-        <div id="player-panel" role="tabpanel" tabindex="0" aria-labelledby="tab-player" hidden>
-          <h2 class="text-3xl font-bold text-var(--text-primary) mb-4">Player</h2>
-          <div id="stream_cn"  class="relative w-full mx-auto">
-            <div id="steam_overlay" class="absolute inset-0 bg-[var(--bg-semi)] flex items-center justify-center z-10">
-              <p class="text-lg font-semibold text-var(--text-primary) truncate">Not Loaded Any Streams...</p>
-            </div>
-            <div id="full_screen" class="absolute inset-0 bg-[var(--bg-secondary)] flex items-center justify-center z-20">
-              <button id="fullscreenBtn" class="absolute top-4 right-4 bg-[var(--bg-secondary)] text-[var(--text-primary)] p-2 rounded-full hover:bg-[var(--bg-primary)] transition focus:outline-none" aria-label="Toggle Fullscreen">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m14-5h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3m14 5h3a2 2 0 0 0 2-2v-3" />
-                </svg>
-              </button>
-            </div>
-            <img id="stream" class="w-full" src="" alt="Stream Player" />
+      #markdownPreview pre code {
+        display: block;
+        background: rgba(0, 0, 0, 0.03);
+        padding: 6px;
+        border-radius: 6px;
+      }
+      body {
+        background: linear-gradient(to right, #e0f7fa, #fff3e0);
+        min-height: 100vh;
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
+      input[type="file"]::file-selector-button {
+        background: rgba(255, 255, 255, 0.4);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      input[type="file"]::file-selector-button:hover {
+        background: linear-gradient(135deg, #9be7ff, #ffe0b2);
+        color: #000;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      textarea,
+      input[type="file"],
+      button,
+      a {
+        transition: all 0.3s ease;
+      }
+      button:hover,
+      a:hover,
+      textarea:hover {
+        background: linear-gradient(135deg, #9be7ff, #ffe0b2);
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body class="text-gray-800">
+    <script>
+      const API_UPLOAD = "/upload/";
+      const API_MARKDOWN = "/markdown/";
+      const API_DOWNLOAD = "/download/";
+    </script>
+
+    <main class="max-w-6xl p-10 mx-auto space-y-10">
+      <!-- Section 1: Upload -->
+      <section class="p-6 glass">
+        <h2 class="mb-4 text-2xl font-bold">1. Upload Codebase (ZIP)</h2>
+        <form id="uploadForm" class="flex flex-col items-start space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+          <input type="file" name="file" accept=".zip" class="p-2 border rounded cursor-pointer bg-white/50" required />
+          <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded shadow hover:scale-105">Upload</button>
+        </form>
+      </section>
+
+      <!-- Section 2: Regex & Tree View -->
+      <section id="section2" class="hidden p-6 glass">
+        <h2 class="mb-4 text-2xl font-bold">2. Filter & Fold</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Left: Regex Inputs -->
+          <div>
+            <label class="block mb-2 font-semibold">Include Regex (comma separated)</label>
+            <textarea id="includeRegex" class="w-full p-2 border rounded bg-white/50 mb-4 h-24 hover:scale-[1.01] focus:outline-none"></textarea>
+
+            <label class="block mb-2 font-semibold">Exclude Regex (comma separated)</label>
+            <textarea id="excludeRegex" class="w-full p-2 border rounded bg-white/50 mb-4 h-24 hover:scale-[1.01] focus:outline-none"></textarea>
+
+            <button id="foldBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Fold</button>
           </div>
 
-        </div>
-
-        <div id="connections-panel" role="tabpanel" tabindex="0" aria-labelledby="tab-connections" hidden>
-          <h2 class="text-3xl font-bold text-var(--text-primary) mb-4">Connections</h2>
-          <p class="text-var(--text-muted)">No active connections currently.</p>
-        </div>
-
-        <div id="about-panel" role="tabpanel" tabindex="0" aria-labelledby="tab-about" hidden>
-          <h2 class="text-3xl font-bold text-var(--text-primary) mb-4">About SpectraCtrl</h2>
-          <p class="text-var(--text-muted) max-w-prose">
-            SpectraCtrl v1.0.0 &mdash; Futuristic remote control and screen sharing software built for GNOME Xorg with FastAPI backend and modern web UI.
-          </p>
+          <!-- Right: File Tree -->
+          <div>
+            <h3 class="mb-2 font-semibold">File Structure</h3>
+            <div id="fileTree" class="bg-white/50 p-4 border rounded h-[300px] overflow-auto text-sm font-mono"></div>
+          </div>
         </div>
       </section>
+
+      <!-- Section 3: Markdown Output -->
+      <section id="section3" class="hidden p-6 glass">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold">3. Output Markdown</h2>
+          <div class="space-x-2">
+            <button id="copyBtn" class="px-4 py-2 text-white bg-gray-800 rounded shadow hover:scale-105">Copy</button>
+            <a id="downloadBtn" href="#" download class="px-4 py-2 text-white bg-blue-600 rounded shadow hover:scale-105">Download</a>
+          </div>
+        </div>
+        <div id="markdownPreview" class="bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></div>
+      </section>
     </main>
-  </div>
-  <script src="/static/js/theme.js"></script>
-  <script src="/static/js/tabs.js"></script>
-  <script src="/static/js/render.js"></script>
-</body>
+
+    <script>
+      let fileUUID = null;
+      const uploadForm = document.getElementById("uploadForm");
+      const fileTree = document.getElementById("fileTree");
+      const markdownPreview = document.getElementById("markdownPreview");
+      const includeRegex = document.getElementById("includeRegex");
+      const excludeRegex = document.getElementById("excludeRegex");
+
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(uploadForm);
+        const res = await fetch(API_UPLOAD, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        fileUUID = data.uuid;
+        renderTree(data.structure);
+        document.getElementById("section2").classList.remove("hidden");
+      });
+
+      function renderTree(structure, prefix = "") {
+        fileTree.innerHTML = "";
+        const walker = (node, depth = 0) => {
+          const color = node.children ? "text-yellow-500" : node.is_text ? "text-green-700" : "text-red-600";
+          fileTree.innerHTML += `<div class='pl-${depth * 4} ${color}'>${prefix + node.name}</div>`;
+          if (node.children) {
+            node.children.forEach((child) => walker(child, depth + 1));
+          }
+        };
+        walker(structure);
+      }
+
+      document.getElementById("foldBtn").addEventListener("click", async () => {
+        const payload = {
+          uuid: fileUUID,
+          include_regex: includeRegex.value || null,
+          exclude_regex: excludeRegex.value || null,
+        };
+        const res = await fetch(API_MARKDOWN, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const markdown = await res.text();
+
+        if (markdown.length > 65 * 1024) {
+          markdownPreview.innerHTML = "<p>Markdown too large to preview.</p>";
+          document.getElementById("copyBtn").classList.add("hidden");
+        } else {
+          markdownPreview.innerHTML = marked.parse(markdown);
+          document.getElementById("copyBtn").classList.remove("hidden");
+        }
+        document.getElementById("section3").classList.remove("hidden");
+        document.getElementById("downloadBtn").href = `${API_DOWNLOAD}${fileUUID}/output.md`;
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", () => {
+        navigator.clipboard.writeText(markdownPreview.textConten);
+      });
+    </script>
+  </body>
 </html>
