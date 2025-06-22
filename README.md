@@ -7,7 +7,7 @@
 
 ## How To Use IT:
 - Upload your codebase and get all the files in single markdown file . 
-- Upload it to ![Qwen](https://chat.qwen.ai/) or any related AI. 
+- Upload it to [Qwen](https://chat.qwen.ai/) or any related AI. 
 - Now AI Know your codebase.
 
 
