@@ -51,7 +51,7 @@ def get_folder_structure(directory: Path) -> Dict:
     try:
         for item in directory.iterdir():
             if item.is_dir():
-                structure["children"].append(get_folder_structure(item))
+                structure["children"].append(get_folder_structure(item)+'/')
             else:
                 mime_type = magic.from_file(item, mime=True)
 
