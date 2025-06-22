@@ -14,6 +14,11 @@
         border-radius: 4px;
         padding: 0px 4px;
       }
+      #static{
+        color: red !important;
+        background: transparent !important;
+        
+      }
 
       #markdownPreview pre code {
         display: block;
@@ -58,6 +63,17 @@
         background: linear-gradient(135deg, #9be7ff, #ffe0b2);
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
       } */
+      #markdownPreviewText{
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        width: 100%;
+        height: 400px;
+        resize: none;
+        padding: 4px;
+        font-family: monospace;
+      }
     </style>
   </head>
   <body class="text-gray-800">
@@ -106,11 +122,13 @@
           <h2 class="text-2xl font-bold">3. Output Markdown</h2>
           <div class="space-x-2">
             <button id="copyBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Copy</button>
+            <button id="EditBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Preview</button>
             <a id="downloadBtn" href="#" download class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Download</a>
           </div>
         </div>
-        <div id="markdownPreview" class="bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></div>
-      </section>
+          <textarea id="markdownPreviewText" class="w-full bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></textarea>
+          <div id="markdownPreview" class="hidden bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></div>
+        </section>
     </main>
 
     <input type="hidden" id="filename" value="" />
@@ -121,6 +139,8 @@
       const markdownPreview = document.getElementById("markdownPreview");
       const includeRegex = document.getElementById("includeRegex");
       const excludeRegex = document.getElementById("excludeRegex");
+      const markdownPreviewText = document.getElementById("markdownPreviewText");
+      const EditBtn = document.getElementById("EditBtn");
 
       uploadForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -140,6 +160,12 @@
           body: formData,
         });
         const data = await res.json();
+        if(!data || !data.structure || !data.uuid) {
+          alert("Failed to upload or process the file.");
+          return;
+        }
+        
+
         fileUUID = data.uuid;
         renderTree(data.structure);
         document.getElementById("section2").classList.remove("hidden");
@@ -150,7 +176,7 @@
         const walker = (node, depth = 0, path = "") => {
           const fullPath = `${path}${node.name}${node.children ? "/" : ""}`;
           const div = document.createElement("div");
-          div.className = `pl-${depth * 4} text-sm font-mono`;
+          div.className = `pl-${depth * 4} text-sm font-mono ${node.is_text ? "" : "font-bold static"}`;
           div.textContent = prefix + node.name + (node.children ? '/' : '');
           div.dataset.path = fullPath;
           div.addEventListener("click", () => {
@@ -215,9 +241,11 @@
 
         if (markdown.length > 65 * 1024) {
           markdownPreview.innerHTML = "<p>Markdown too large to preview.</p>";
+          document.getElementById("markdownPreviewText").value = markdown;
           document.getElementById("copyBtn").classList.add("hidden");
         } else {
           markdownPreview.innerHTML = marked.parse(markdown);
+          document.getElementById("markdownPreviewText").value = markdown;
           document.getElementById("copyBtn").classList.remove("hidden");
         }
         document.getElementById("section3").classList.remove("hidden");
@@ -232,6 +260,18 @@
         navigator.clipboard.writeText(markdownPreview.textConten);
       });
 
+      EditBtn.addEventListener("click", () => {
+        if(markdownPreviewText.classList.contains("hidden")) {
+          markdownPreviewText.classList.remove("hidden");
+          markdownPreview.classList.add("hidden");
+          EditBtn.textContent = "Preview";
+        } else {
+          markdownPreviewText.classList.add("hidden");
+          markdownPreview.classList.remove("hidden");
+          EditBtn.textContent = "Edit";
+        }
+      });
+      
       window.onload = () => {
         includeRegex.value = localStorage.getItem("includeRegex") || "";
         excludeRegex.value = localStorage.getItem("excludeRegex") || "";
