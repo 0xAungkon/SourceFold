@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Source Fold</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      #markdownPreview p code{
+        color:red;
+        background: rgba(0, 0, 0, 0.03);
+        font-family: monospace;
+        border-radius: 4px;
+        padding: 0px 4px;
+      }
+      #static{
+        color: red !important;
+        background: transparent !important;
+        
+      }
+
+      #markdownPreview pre code {
+        display: block;
+        background: rgba(0, 0, 0, 0.03);
+        padding: 6px;
+        border-radius: 6px;
+      }
+      body {
+        background: linear-gradient(to right, #e0f7fa, #fff3e0);
+        min-height: 100vh;
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
+      input[type="file"]::file-selector-button {
+        background: rgba(255, 255, 255, 0.4);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      input[type="file"]::file-selector-button:hover {
+        /* background: linear-gradient(135deg, #9be7ff, #ffe0b2); */
+        color: #000;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      textarea,
+      input[type="file"],
+      button,
+      a {
+        transition: all 0.3s ease;
+      }
+      /* button:hover,
+      a:hover,
+      textarea:hover {
+        background: linear-gradient(135deg, #9be7ff, #ffe0b2);
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+      } */
+      #markdownPreviewText{
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        width: 100%;
+        height: 400px;
+        resize: none;
+        padding: 4px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body class="text-gray-800">
+    <script>
+      const API_UPLOAD = "/upload/";
+      const API_MARKDOWN = "/markdown/";
+      const API_DOWNLOAD = "/download/";
+    </script>
+
+    <main class="max-w-6xl p-10 mx-auto space-y-10">
+      <!-- Section 1: Upload -->
+      <section class="p-6 glass">
+        <h2 class="mb-4 text-2xl font-bold">1. Upload Codebase (ZIP)</h2>
+        <form id="uploadForm" class="flex flex-col items-start space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+          <input type="file" name="file" accept=".zip" class="p-2 border rounded cursor-pointer bg-white/50" required />
+          <button type="submit" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Upload</button>
+        </form>
+      </section>
+
+      <!-- Section 2: Regex & Tree View -->
+      <section id="section2" class="hidden p-6 glass">
+        <h2 class="mb-4 text-2xl font-bold">2. Filter & Fold</h2>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Left: Regex Inputs -->
+          <div>
+            <label class="block mb-2 font-semibold">Include Regex (comma separated)</label>
+            <textarea id="includeRegex" class="w-full p-2 border rounded bg-white/50 mb-4 h-24 hover:scale-[1.01] focus:outline-none"></textarea>
+
+            <label class="block mb-2 font-semibold">Exclude Regex (comma separated)</label>
+            <textarea id="excludeRegex" class="w-full p-2 border rounded bg-white/50 mb-4 h-24 hover:scale-[1.01] focus:outline-none"></textarea>
+
+            <button id="foldBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Fold</button>
+          </div>
+
+          <!-- Right: File Tree -->
+          <div>
+            <h3 class="mb-2 font-semibold">File Structure</h3>
+            <div id="fileTree" class="bg-white/50 p-4 border rounded h-[300px] overflow-auto text-sm font-mono"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Markdown Output -->
+      <section id="section3" class="hidden p-6 glass">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold">3. Output Markdown</h2>
+          <div class="space-x-2">
+            <button id="copyBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Copy</button>
+            <button id="EditBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Preview</button>
+            <a id="downloadBtn" href="#" download class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Download</a>
+          </div>
+        </div>
+          <textarea id="markdownPreviewText" class="w-full bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></textarea>
+          <div id="markdownPreview" class="hidden bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></div>
+        </section>
+    </main>
+
+    <input type="hidden" id="filename" value="" />
+    <script>
+      let fileUUID = null;
+      const uploadForm = document.getElementById("uploadForm");
+      const fileTree = document.getElementById("fileTree");
+      const markdownPreview = document.getElementById("markdownPreview");
+      const includeRegex = document.getElementById("includeRegex");
+      const excludeRegex = document.getElementById("excludeRegex");
+      const markdownPreviewText = document.getElementById("markdownPreviewText");
+      const EditBtn = document.getElementById("EditBtn");
+
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(uploadForm);
+        const fileName = formData.get('file')?.name;
+        const newFileName = fileName.split('.').slice(0, -1).join('.') + '.md';
+        document.getElementById("filename").value = newFileName;
+        if (!fileName || !fileName.endsWith('.zip')) {
+          alert("Please upload a valid ZIP file.");
+          return;
+        }
+        
+        
+        const res = await fetch(API_UPLOAD, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if(!data || !data.structure || !data.uuid) {
+          alert("Failed to upload or process the file.");
+          return;
+        }
+        
+
+        fileUUID = data.uuid;
+        renderTree(data.structure);
+        document.getElementById("section2").classList.remove("hidden");
+      });
+
+      function renderTree(structure, prefix = "") {
+        fileTree.innerHTML = "";
+        const walker = (node, depth = 0, path = "") => {
+          const fullPath = `${path}${node.name}${node.children ? "/" : ""}`;
+          const div = document.createElement("div");
+          div.className = `pl-${depth * 4} text-sm font-mono ${node.is_text ? "" : "font-bold static"}`;
+          div.textContent = prefix + node.name + (node.children ? '/' : '');
+          div.dataset.path = fullPath;
+          div.addEventListener("click", () => {
+            navigator.clipboard.writeText(fullPath);
+          });
+          fileTree.appendChild(div);
+          if (node.children) {
+            node.children.forEach((child) => walker(child, depth + 1, fullPath));
+          }
+        };
+        walker(structure);
+        updateTreeHighlighting();
+      }
+
+
+
+      function updateTreeHighlighting() {
+        localStorage.setItem("includeRegex", includeRegex.value);
+        localStorage.setItem("excludeRegex", excludeRegex.value);
+        
+        const excludePatterns = (excludeRegex.value || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .map((r) => new RegExp(r));
+        const includePatterns = (includeRegex.value || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .map((r) => new RegExp(r));
+
+        document.querySelectorAll("#fileTree > div").forEach((el) => {
+          const path = el.dataset.path;
+          let isExcluded = excludePatterns.some((rx) => rx.test(path));
+          let isIncluded = includePatterns.some((rx) => rx.test(path));
+          el.className = el.className.replace(/bg-[^\s]+|text-[^\s]+/g, '');
+          if (isExcluded) {
+            el.classList.add("bg-red-200", "text-black");
+          } else if (isIncluded) {
+            el.classList.add("bg-green-200", "text-black");
+          } else {
+            el.classList.add("text-gray-500");
+          }
+        });
+      }
+
+      includeRegex.addEventListener("input", updateTreeHighlighting);
+      excludeRegex.addEventListener("input", updateTreeHighlighting);
+
+      document.getElementById("foldBtn").addEventListener("click", async () => {
+        const payload = {
+          uuid: fileUUID,
+          include_regex: includeRegex.value || null,
+          exclude_regex: excludeRegex.value || null,
+        };
+        const res = await fetch(API_MARKDOWN, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const markdown = await res.text();
+
+        if (markdown.length > 65 * 1024) {
+          markdownPreview.innerHTML = "<p>Markdown too large to preview.</p>";
+          document.getElementById("markdownPreviewText").value = markdown;
+          document.getElementById("copyBtn").classList.add("hidden");
+        } else {
+          markdownPreview.innerHTML = marked.parse(markdown);
+          document.getElementById("markdownPreviewText").value = markdown;
+          document.getElementById("copyBtn").classList.remove("hidden");
+        }
+        document.getElementById("section3").classList.remove("hidden");
+        file_name = document.getElementById("filename").value;
+        if (!file_name) {
+          file_name = "output.md";
+        } 
+        document.getElementById("downloadBtn").href = `${API_DOWNLOAD}${fileUUID}/${file_name}`;
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", () => {
+        navigator.clipboard.writeText(markdownPreview.textConten);
+      });
+
+      EditBtn.addEventListener("click", () => {
+        if(markdownPreviewText.classList.contains("hidden")) {
+          markdownPreviewText.classList.remove("hidden");
+          markdownPreview.classList.add("hidden");
+          EditBtn.textContent = "Preview";
+        } else {
+          markdownPreviewText.classList.add("hidden");
+          markdownPreview.classList.remove("hidden");
+          EditBtn.textContent = "Edit";
+        }
+      });
+      
+      window.onload = () => {
+        includeRegex.value = localStorage.getItem("includeRegex") || "";
+        excludeRegex.value = localStorage.getItem("excludeRegex") || "";
+        updateTreeHighlighting();
+      };
+    </script>
+  </body>
+</html>
