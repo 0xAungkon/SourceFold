@@ -42,7 +42,7 @@
         transition: all 0.3s ease;
       }
       input[type="file"]::file-selector-button:hover {
-        background: linear-gradient(135deg, #9be7ff, #ffe0b2);
+        /* background: linear-gradient(135deg, #9be7ff, #ffe0b2); */
         color: #000;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
@@ -52,12 +52,12 @@
       a {
         transition: all 0.3s ease;
       }
-      button:hover,
+      /* button:hover,
       a:hover,
       textarea:hover {
         background: linear-gradient(135deg, #9be7ff, #ffe0b2);
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-      }
+      } */
     </style>
   </head>
   <body class="text-gray-800">
@@ -73,7 +73,7 @@
         <h2 class="mb-4 text-2xl font-bold">1. Upload Codebase (ZIP)</h2>
         <form id="uploadForm" class="flex flex-col items-start space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
           <input type="file" name="file" accept=".zip" class="p-2 border rounded cursor-pointer bg-white/50" required />
-          <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded shadow hover:scale-105">Upload</button>
+          <button type="submit" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Upload</button>
         </form>
       </section>
 
@@ -105,8 +105,8 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-2xl font-bold">3. Output Markdown</h2>
           <div class="space-x-2">
-            <button id="copyBtn" class="px-4 py-2 text-white bg-gray-800 rounded shadow hover:scale-105">Copy</button>
-            <a id="downloadBtn" href="#" download class="px-4 py-2 text-white bg-blue-600 rounded shadow hover:scale-105">Download</a>
+            <button id="copyBtn" class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Copy</button>
+            <a id="downloadBtn" href="#" download class="px-4 py-2 text-white bg-green-600 rounded shadow hover:scale-105">Download</a>
           </div>
         </div>
         <div id="markdownPreview" class="bg-white/50 border p-4 h-[400px] overflow-auto whitespace-pre-wrap rounded text-sm font-mono prose max-w-none"></div>
