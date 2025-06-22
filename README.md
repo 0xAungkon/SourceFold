@@ -40,4 +40,4 @@ Or Just Use Docker
 docker compose up -d
 ```
 
-**Now Hit into: ![http://localhost:8000](http://localhost:8000)**
+**Now Hit into: [http://localhost:8000](http://localhost:8000)**
