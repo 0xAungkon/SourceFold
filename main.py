@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import tempfile
 import logging
 import magic
-
+from datetime import datetime
 
 app = FastAPI(title="Source Fold API")
 
@@ -185,7 +185,7 @@ async def upload_zip(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Only zip files are allowed")
 
     file_uuid = str(uuid.uuid4())
-    extract_path = UPLOAD_DIR / file_uuid
+    extract_path = UPLOAD_DIR / "source" / file_uuid
     
     try:
         # Create temporary directory
@@ -215,7 +215,7 @@ async def upload_zip(file: UploadFile = File(...)):
 @app.post("/markdown/")
 async def create_markdown(filters: FilterRequest):
     """Generate markdown file based on filters and return it."""
-    extract_path = UPLOAD_DIR / filters.uuid
+    extract_path = UPLOAD_DIR / 'source' / filters.uuid
     
     if not extract_path.exists():
         raise HTTPException(status_code=404, detail="UUID not found")
@@ -225,12 +225,11 @@ async def create_markdown(filters: FilterRequest):
         
         # Check file size (in bytes, 65KB = 65 * 1024)
         # content_size = len(markdown_content.encode("utf-8"))
-        output_file = extract_path / "output.md"
+        output_file = UPLOAD_DIR / 'markdown' / filters.uuid / "output.md"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
         
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(markdown_content)
-        
-        
         
         return Response(content=markdown_content)
     
@@ -241,7 +240,7 @@ async def create_markdown(filters: FilterRequest):
 @app.get("/download/{uuid}/{filename}")
 async def download_markdown(uuid: str, filename: str):
     """Download the generated markdown file."""
-    file_path = UPLOAD_DIR / uuid / filename
+    file_path = UPLOAD_DIR / 'markdown' / uuid / 'output.md'
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")

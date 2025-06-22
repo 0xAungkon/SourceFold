@@ -113,6 +113,7 @@
       </section>
     </main>
 
+    <input type="hidden" id="filename" value="" />
     <script>
       let fileUUID = null;
       const uploadForm = document.getElementById("uploadForm");
@@ -123,7 +124,23 @@
 
       uploadForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        
         const formData = new FormData(uploadForm);
+        const fileName = formData.get('file')?.name;
+        const newFileName = fileName.split('.').slice(0, -1).join('.') + '.md';
+        document.getElementById("filename").value = newFileName;
+
+
+
+
+
+
+        if (!fileName || !fileName.endsWith('.zip')) {
+          alert("Please upload a valid ZIP file.");
+          return;
+        }
+        
+        
         const res = await fetch(API_UPLOAD, {
           method: "POST",
           body: formData,
@@ -167,7 +184,11 @@
           document.getElementById("copyBtn").classList.remove("hidden");
         }
         document.getElementById("section3").classList.remove("hidden");
-        document.getElementById("downloadBtn").href = `${API_DOWNLOAD}${fileUUID}/output.md`;
+        file_name = document.getElementById("filename").value;
+        if (!file_name) {
+          file_name = "output.md";
+        } 
+        document.getElementById("downloadBtn").href = `${API_DOWNLOAD}${fileUUID}/${file_name}`;
       });
 
       document.getElementById("copyBtn").addEventListener("click", () => {
