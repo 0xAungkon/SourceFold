@@ -1,4 +1,4 @@
-# SourceFold - A Ultimate Tool For Vive Coders / Old School to utilize AI 
+# SourceFold - A Ultimate Tool For Vive Coders to utilize AI 
 
 **SourceFold** is a utility tool that collapses an entire codebase into a single file. This is especially useful for feeding source code into AI models or LLMs that require full context in a linear, compact format.
 
