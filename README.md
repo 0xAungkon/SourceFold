@@ -1,6 +1,15 @@
-# SourceCompact
+# SourceCompact - A Ultimate Tool For Vive Coders / Old School to utilize AI 
 
 **SourceCompact** is a utility tool that collapses an entire codebase into a single file. This is especially useful for feeding source code into AI models or LLMs that require full context in a linear, compact format.
+
+<img src="static/images/gui.png" alt="Output 1" width="600"/>  
+<img src="static/images/output1.png" alt="Output 1" width="600"/>  
+
+## How To Use IT:
+- Upload your codebase and get all the files in single markdown file . 
+- Upload it to ![Qwen](https://chat.qwen.ai/) or any related AI. 
+- Now AI Know your codebase.
+
 
 ## Features
 
@@ -20,6 +29,15 @@
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/sourcecompact.git
-cd sourcecompact
+git clone https://github.com/0xAungkon/SourceFold.git
+cd SourceFold
 pip install -r requirements.txt
+make start
+```
+
+Or Just Use Docker
+```bash
+docker compose up -d
+```
+
+**Now Hit into: ![http://localhost:8000](http://localhost:8000)**
