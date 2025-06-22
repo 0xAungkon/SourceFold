@@ -129,12 +129,6 @@
         const fileName = formData.get('file')?.name;
         const newFileName = fileName.split('.').slice(0, -1).join('.') + '.md';
         document.getElementById("filename").value = newFileName;
-
-
-
-
-
-
         if (!fileName || !fileName.endsWith('.zip')) {
           alert("Please upload a valid ZIP file.");
           return;
@@ -153,15 +147,58 @@
 
       function renderTree(structure, prefix = "") {
         fileTree.innerHTML = "";
-        const walker = (node, depth = 0) => {
-          const color = node.children ? "text-yellow-500" : node.is_text ? "text-green-700" : "text-red-600";
-          fileTree.innerHTML += `<div class='pl-${depth * 4} ${color}'>${prefix + node.name}</div>`;
+        const walker = (node, depth = 0, path = "") => {
+          const fullPath = `${path}${node.name}${node.children ? "/" : ""}`;
+          const div = document.createElement("div");
+          div.className = `pl-${depth * 4} text-sm font-mono`;
+          div.textContent = prefix + node.name + (node.children ? '/' : '');
+          div.dataset.path = fullPath;
+          div.addEventListener("click", () => {
+            navigator.clipboard.writeText(fullPath);
+          });
+          fileTree.appendChild(div);
           if (node.children) {
-            node.children.forEach((child) => walker(child, depth + 1));
+            node.children.forEach((child) => walker(child, depth + 1, fullPath));
           }
         };
         walker(structure);
+        updateTreeHighlighting();
       }
+
+
+
+      function updateTreeHighlighting() {
+        localStorage.setItem("includeRegex", includeRegex.value);
+        localStorage.setItem("excludeRegex", excludeRegex.value);
+        
+        const excludePatterns = (excludeRegex.value || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .map((r) => new RegExp(r));
+        const includePatterns = (includeRegex.value || "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s)
+          .map((r) => new RegExp(r));
+
+        document.querySelectorAll("#fileTree > div").forEach((el) => {
+          const path = el.dataset.path;
+          let isExcluded = excludePatterns.some((rx) => rx.test(path));
+          let isIncluded = includePatterns.some((rx) => rx.test(path));
+          el.className = el.className.replace(/bg-[^\s]+|text-[^\s]+/g, '');
+          if (isExcluded) {
+            el.classList.add("bg-red-200", "text-black");
+          } else if (isIncluded) {
+            el.classList.add("bg-green-200", "text-black");
+          } else {
+            el.classList.add("text-gray-500");
+          }
+        });
+      }
+
+      includeRegex.addEventListener("input", updateTreeHighlighting);
+      excludeRegex.addEventListener("input", updateTreeHighlighting);
 
       document.getElementById("foldBtn").addEventListener("click", async () => {
         const payload = {
@@ -194,6 +231,12 @@
       document.getElementById("copyBtn").addEventListener("click", () => {
         navigator.clipboard.writeText(markdownPreview.textConten);
       });
+
+      window.onload = () => {
+        includeRegex.value = localStorage.getItem("includeRegex") || "";
+        excludeRegex.value = localStorage.getItem("excludeRegex") || "";
+        updateTreeHighlighting();
+      };
     </script>
   </body>
 </html>
