@@ -54,7 +54,47 @@ def get_folder_structure(directory: Path) -> Dict:
                 structure["children"].append(get_folder_structure(item))
             else:
                 mime_type = magic.from_file(item, mime=True)
-                if mime_type.startswith("text/") or mime_type in ["inode/x-empty"]:
+
+                textual_application_mimetypes = [
+                    "inode/x-empty", 
+                    'application/json',
+                    "application/json",
+                    "application/javascript",
+                    "application/xml",
+                    "application/x-www-form-urlencoded",
+                    # "application/sql",
+                    # "application/graphql",
+                    "application/ld+json",
+                    "application/vnd.api+json",
+                    "application/x-sh",
+                    "application/x-python",
+                    "application/x-httpd-php",
+                    "application/x-yaml",
+                    "application/x-markdown",
+                    "application/x-perl",
+                    "application/x-latex",
+                    "application/x-c",
+                    "application/x-java",
+                    "application/x-tcl",
+                    "application/x-ruby",
+                    "application/x-shellscript",
+                    "application/x-ksh",
+                    "application/x-bash",
+                    "application/x-zsh",
+                    "application/x-csh",
+                    "application/x-scala",
+                    "application/x-lisp",
+                    "application/x-haskell",
+                    "application/x-sql",
+                    "application/x-php",  # sometimes used interchangeably
+                    "application/x-aspx",
+                    "application/x-typescript",
+                    "application/x-jsonlines",
+                    "application/vnd.curl",
+                ]
+
+
+                if mime_type.startswith("text/") or mime_type in textual_application_mimetypes:
                     is_text = True
                 else:
                     is_text = False
