@@ -67,7 +67,7 @@ sourcefold-cli --output .docs/combined_code.md --folders src,test --extensions .
 ### Example 3 — Run Without Installation
 
 ```bash
-curl -s https://raw.githubusercontent.com/0xAungkon/SourceFold/refs/heads/main/sourcefold-cli.py | python3 - --output docs/combined_code.md --folders src,test --extensions .jsx,.js
+curl -s https://raw.githubusercontent.com/0xAungkon/SourceFold/refs/heads/main/sourcefold-cli.py | python3 - --output /tmp/combined_codebase.md --folders src,test --extensions .py,.html
 ```
 
 ---
